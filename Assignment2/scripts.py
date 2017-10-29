@@ -24,9 +24,9 @@ def to_edgelist(inputfile):
 		if M:
 			matches += len(M)
 			for match in M:
-				user2 = match[1:]
+				user2 = match[1:] # Omit '@' character from username
 				
-				# Omit last character if needed
+				# Omit last character if needed (in case of \n this should not happen)
 				if not user2.isalnum():
 					user2 = user2[:-1]
 				edge_list.append([user1, user2])
