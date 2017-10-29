@@ -2,54 +2,40 @@ import networkx as nx
 import numpy as np
 from time import time
 import csv
+import re
 
 def to_edgelist(inputfile):
 	data = np.genfromtxt(inputfile+".in", dtype=str, delimiter='\n')
 	edge_list = [["Source", "Target"]]
-	rownumber = 0
 	
+	# Mentions are from the form @(alphanumeric characters and '_')*(not '.')
+	R = re.compile('@[\w_]+[^.]')
+	matches = 0
+	tweets = len(data)
+	
+	# Parse the data row for row
 	for row in data:
-		rownumber+=1
 		rowArray = row.split('\t')
 		user1 = rowArray[1]
+		tweet = rowArray[2]
 		
-		# Find the number of mentioned users in this tweet #
-		for i in np.arange(row.count('@')):
-			index = row.find('@')
-			if index > 0:
-				j=1
+		# Find matches in the tweet according to our regular expression
+		M = R.findall(tweet)
+		if M:
+			matches += len(M)
+			for match in M:
+				user2 = match[1:]
 				
-				# Look for the first character that is not a number or a letter #
-				while index+j+1 < len(row) and row[index+j] != ' ' and row[index+j] != ':' and row[index+j] != '!' and row[index+j] != ')' and row[index+j] != ';' and row[index+j] != '@' and row[index+j] != '"'  and row[index+j] != '.' and row[index+j] != '\xe3':
-					j += 1
-				
-				if(j>1):
-					# Parse mentioned username without the @ character #
-					user2 = row[index+1:index+j].lower()
-					
-					# Filter out usernames containing common email extensions
-					if row[index+j] == '.':
-						if row[index+j:index+j+4] == ".com" or row[index+j:index+j+4] == ".org" or row[index+j:index+j+4] == ".net" or row[index+j:index+j+3] == ".ir" or row[index+j:index+j+3] == ".ne" or row[index+j:index+j+3] == ".nl" or row[index+j:index+j+3] == ".es" or row[index+j:index+j+4] == ".co." or row[index+j:index+j+3] == ".tv" or row[index+j:index+j+3] == ".de":
-							continue
-					
-					if row[index-1] == ' ' or row[index-1] == '\t' or row[index-1] == '(' or row[index-1] == 'T' or row[index-1] == 't' or row[index-1] == '.' or row[index-1] == ':' or row[index-1]== '!' or row[index-1] == '?' or row[index-1] == '/' or row[index-1] == '-' or row[index-1] == '~' or row[index-1] == ']' or row[index-1] == '[' or row[index-1] == '"':
-						#print(user2, row[index-5:min(index+10,len(row))])
-						edge_list.append([user1, user2])
-					#else:
-						#print(user2, row[index-20:min(index+20,len(row))])
-
-				# Continue iterating #
-				row = row[index+j:]
+				# Omit last character if needed
+				if not user2.isalnum():
+					user2 = user2[:-1]
+				edge_list.append([user1, user2])
 	
-	print("Sort the edge list")
-	edge_list = np.sort(edge_list, 1)
-	
-	print(len(np.unique(edge_list[:,0])))
+	print("%d mentions were found over %d tweets! " %(matches, tweets))
 	
 	with open(inputfile+'.csv', 'wb') as f:
 		writer = csv.writer(f)
 		writer.writerows(edge_list)
-    
 
 def main():
 	start_time = time()
