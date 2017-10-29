@@ -19,7 +19,7 @@ def to_edgelist(inputfile):
 			if index > 0:
 				j=1
 				
-				# Look for the first non-number and non-character #
+				# Look for the first character that is not a number or a letter #
 				while index+j+1 < len(row) and row[index+j] != ' ' and row[index+j] != ':' and row[index+j] != '!' and row[index+j] != ')' and row[index+j] != ';' and row[index+j] != '@' and row[index+j] != '"'  and row[index+j] != '.' and row[index+j] != '\xe3':
 					j += 1
 				
@@ -27,9 +27,9 @@ def to_edgelist(inputfile):
 					# Parse mentioned username without the @ character #
 					user2 = row[index+1:index+j].lower()
 					
+					# Filter out usernames containing common email extensions
 					if row[index+j] == '.':
 						if row[index+j:index+j+4] == ".com" or row[index+j:index+j+4] == ".org" or row[index+j:index+j+4] == ".net" or row[index+j:index+j+3] == ".ir" or row[index+j:index+j+3] == ".ne" or row[index+j:index+j+3] == ".nl" or row[index+j:index+j+3] == ".es" or row[index+j:index+j+4] == ".co." or row[index+j:index+j+3] == ".tv" or row[index+j:index+j+3] == ".de":
-							print(user2, row[index-10:min(index+20,len(row))])
 							continue
 					
 					if row[index-1] == ' ' or row[index-1] == '\t' or row[index-1] == '(' or row[index-1] == 'T' or row[index-1] == 't' or row[index-1] == '.' or row[index-1] == ':' or row[index-1]== '!' or row[index-1] == '?' or row[index-1] == '/' or row[index-1] == '-' or row[index-1] == '~' or row[index-1] == ']' or row[index-1] == '[' or row[index-1] == '"':
@@ -43,6 +43,8 @@ def to_edgelist(inputfile):
 	
 	print("Sort the edge list")
 	edge_list = np.sort(edge_list, 1)
+	
+	print(len(np.unique(edge_list[:,0])))
 	
 	with open(inputfile+'.csv', 'wb') as f:
 		writer = csv.writer(f)
